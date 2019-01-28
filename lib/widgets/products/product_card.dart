@@ -26,33 +26,30 @@ class ProductCard extends StatelessWidget {
             PriceTag(
               price: product.price.toString(),
             ),
-            Text(product.userEmail)
+            Center(child: Text(product.userEmail))
           ],
         ));
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return ButtonBar(
-      alignment: MainAxisAlignment.center,
-      children: <Widget>[
+    return ScopedModelDescendant<MainModel>(
+        builder: (BuildContext context, Widget child, MainModel model) {
+      return ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
         IconButton(
             icon: Icon(Icons.info),
             onPressed: () => Navigator.pushNamed<bool>(
-                context, '/product/' + productIndex.toString())),
-        ScopedModelDescendant<MainModel>(
-            builder: (BuildContext context, Widget child, MainModel model) {
-          return IconButton(
-              icon: Icon(model.products[productIndex].isFavorite
-                  ? Icons.favorite
-                  : Icons.favorite_border),
-              color: Colors.red,
-              onPressed: () {
-                model.selectProduct(productIndex);
-                model.toggleProductFavoriteStatus();
-              });
-        })
-      ],
-    );
+                context, '/product/' + model.products[productIndex].id)),
+        IconButton(
+            icon: Icon(model.products[productIndex].isFavorite
+                ? Icons.favorite
+                : Icons.favorite_border),
+            color: Colors.red,
+            onPressed: () {
+              model.selectProduct(model.products[productIndex].id);
+              model.toggleProductFavoriteStatus();
+            })
+      ]);
+    });
   }
 
   @override
@@ -60,7 +57,12 @@ class ProductCard extends StatelessWidget {
     return Card(
       child: Column(
         children: <Widget>[
-          Image.asset(product.image),
+          FadeInImage(
+            image: NetworkImage(product.image),
+            height: 300.0,
+            fit: BoxFit.cover,
+            placeholder: AssetImage('assets/food.jpg'),
+          ),
           _buildTitlePriceRow(),
           AddressTag('San Francisco'),
           _buildActionButtons(context)

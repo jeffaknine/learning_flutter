@@ -6,6 +6,7 @@ import './pages/product_admin.dart';
 import './pages/products.dart';
 import './pages/product.dart';
 import './scoped-models/main.dart';
+import './models/product.dart';
 
 main() {
   runApp(MyApp());
@@ -14,16 +15,17 @@ main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final MainModel model = MainModel();
     return ScopedModel<MainModel>(
-        model: MainModel(),
+        model: model,
         child: MaterialApp(
           theme: ThemeData.dark(),
           // theme: ThemeData(
           //     primarySwatch: Colors.deepOrange, accentColor: Colors.purpleAccent),
           home: AuthPage(),
           routes: {
-            '/products': (BuildContext context) => ProductsPage(),
-            '/admin': (BuildContext context) => ProductAdmin(),
+            '/products': (BuildContext context) => ProductsPage(model),
+            '/admin': (BuildContext context) => ProductAdmin(model),
           },
           onGenerateRoute: (RouteSettings settings) {
             final List<String> pathElements = settings.name.split('/');
@@ -31,10 +33,13 @@ class MyApp extends StatelessWidget {
               return null;
             }
             if (pathElements[1] == 'product') {
-              final int index = int.parse(pathElements[2]);
+              final String productId = (pathElements[2]);
+              final Product product = model.products
+                  .firstWhere((Product product) => product.id == productId);
+              model.selectProduct(productId);
               return MaterialPageRoute<bool>(
                   builder: (context) => ProductPage(
-                        productIndex: index,
+                        product: product,
                         address: 'Union Square, San Francisco',
                       ));
             }
