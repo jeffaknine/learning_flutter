@@ -100,15 +100,16 @@ class _ProductCreateOrEditPageState extends State<ProductCreateOrEditPage> {
     _formKey.currentState.save();
     if (selectedProductIndex == -1) {
       addProduct(
-        _formData['title'],
-        _formData['description'],
-        _formData['price'],
-        _formData['image'],
-        authenticatedUser.email,
-        authenticatedUser.id,
-      ).then((bool success) {
+              _formData['title'],
+              _formData['description'],
+              _formData['price'],
+              _formData['image'],
+              authenticatedUser.email,
+              authenticatedUser.id,
+              authenticatedUser.token)
+          .then((bool success) {
         if (success)
-          Navigator.pushReplacementNamed(context, '/products')
+          Navigator.pushReplacementNamed(context, '/')
               .then((_) => setSelectedProduct(null));
         else {
           Scaffold.of(context).showSnackBar(SnackBar(
@@ -118,15 +119,16 @@ class _ProductCreateOrEditPageState extends State<ProductCreateOrEditPage> {
       });
     } else {
       updateProduct(
-        _formData['title'],
-        _formData['description'],
-        _formData['price'],
-        _formData['image'],
-        authenticatedUser.email,
-        authenticatedUser.id,
-      ).then((bool success) {
+              _formData['title'],
+              _formData['description'],
+              _formData['price'],
+              _formData['image'],
+              authenticatedUser.email,
+              authenticatedUser.id,
+              authenticatedUser.token)
+          .then((bool success) {
         if (success)
-          Navigator.pushReplacementNamed(context, '/products')
+          Navigator.pushReplacementNamed(context, '/')
               .then((_) => setSelectedProduct(null));
         else {
           Scaffold.of(context).showSnackBar(SnackBar(

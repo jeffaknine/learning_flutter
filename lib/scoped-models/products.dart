@@ -49,16 +49,18 @@ mixin ProductsModel on Model {
     return _showFavorites;
   }
 
-  Future<Null> fetchProducts() {
+  Future<Null> fetchProducts(String token) {
     _isLoading = true;
-    return http.get(dbUrl + 'products.json').then((http.Response response) {
+    return http
+        .get(dbUrl + 'products.json?auth=$token')
+        .then((http.Response response) {
       final List<Product> fetchedProductList = [];
       final Map<String, dynamic> products = json.decode(response.body);
       if (products == null) {
         _isLoading = false;
         notifyListeners();
         return;
-      }
+      } else if (products['error']['message'] == 'INVALID_ID_TOKEN') {}
       products.forEach((String productId, dynamic productData) {
         final Product product = Product(
           id: productId,
@@ -79,7 +81,7 @@ mixin ProductsModel on Model {
   }
 
   Future<bool> addProduct(
-      title, description, price, image, userEmail, userId) async {
+      title, description, price, image, userEmail, userId, token) async {
     _isLoading = true;
     notifyListeners();
 
@@ -92,8 +94,8 @@ mixin ProductsModel on Model {
       'userId': userId
     };
 
-    final http.Response response =
-        await http.post(dbUrl + 'products.json', body: json.encode(data));
+    final http.Response response = await http
+        .post(dbUrl + 'products.json?auth=$token', body: json.encode(data));
     try {
       if (response.statusCode != 200 && response.statusCode != 201) {
         _isLoading = false;
@@ -121,7 +123,7 @@ mixin ProductsModel on Model {
   }
 
   Future<bool> updateProduct(
-      title, description, price, image, userEmail, userId) {
+      title, description, price, image, userEmail, userId, token) {
     _isLoading = true;
     notifyListeners();
 
@@ -134,7 +136,7 @@ mixin ProductsModel on Model {
       'userId': userId
     };
     return http
-        .put(dbUrl + 'products/${selectedProduct.id}.json',
+        .put(dbUrl + 'products/${selectedProduct.id}.json?auth=$token',
             body: json.encode(data))
         .then((http.Response reponse) {
       final Product updatedProduct = Product(
@@ -157,11 +159,11 @@ mixin ProductsModel on Model {
     });
   }
 
-  Future<bool> deleteProduct() {
+  Future<bool> deleteProduct(token) {
     _isLoading = true;
     notifyListeners();
     return http
-        .delete(dbUrl + '/products/${selectedProduct.id}.json')
+        .delete(dbUrl + '/products/${selectedProduct.id}.json?auth=$token')
         .then((http.Response reponse) {
       print(reponse);
       _products.removeAt(selectedProductIndex);

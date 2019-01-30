@@ -3,6 +3,7 @@ import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main.dart';
 
 import '../widgets/products/products.dart';
+import '../widgets/drawer.dart';
 
 class ProductsPage extends StatefulWidget {
   final MainModel model;
@@ -18,30 +19,8 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   @override
   initState() {
-    widget.model.fetchProducts();
+    widget.model.fetchProducts(widget.model.authenticatedUser.token);
     super.initState();
-  }
-
-  Widget _buildSideDrawer(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: <Widget>[
-          AppBar(
-            title: Text("Choose"),
-            automaticallyImplyLeading: false,
-          ),
-          ListTile(
-            leading: Icon(Icons.edit),
-            title: Text(
-              "Manage Products",
-            ),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/admin');
-            },
-          )
-        ],
-      ),
-    );
   }
 
   Widget _buildProductsList() {
@@ -55,7 +34,10 @@ class _ProductsPageState extends State<ProductsPage> {
         } else if (model.loadingProducts) {
           content = Center(child: CircularProgressIndicator());
         }
-        return RefreshIndicator(child: content, onRefresh: model.fetchProducts);
+        return RefreshIndicator(
+            child: content,
+            onRefresh: () =>
+                model.fetchProducts(model.authenticatedUser.token));
       },
     );
   }
@@ -63,7 +45,7 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: _buildSideDrawer(context),
+      drawer: DrawerWidget(),
       appBar: AppBar(
         title: Text("EasyList"),
         actions: <Widget>[

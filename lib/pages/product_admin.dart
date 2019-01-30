@@ -3,35 +3,18 @@ import 'package:flutter/material.dart';
 import './product_list.dart';
 import './product_create_or_edit.dart';
 import '../scoped-models/main.dart';
+import '../widgets/drawer.dart';
 
 class ProductAdmin extends StatelessWidget {
   final MainModel model;
   ProductAdmin(this.model);
-  Widget _buildSideDrawer(BuildContext context) {
-    return Drawer(
-        child: Column(
-      children: <Widget>[
-        AppBar(
-          automaticallyImplyLeading: false,
-          title: Text("Choose"),
-        ),
-        ListTile(
-          leading: Icon(Icons.shop),
-          title: Text("Products"),
-          onTap: () {
-            Navigator.pushReplacementNamed(context, '/products');
-          },
-        )
-      ],
-    ));
-  }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        drawer: _buildSideDrawer(context),
+        drawer: DrawerWidget(),
         appBar: AppBar(
           title: Text("ProductAdmin"),
           bottom: TabBar(

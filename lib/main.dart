@@ -9,23 +9,30 @@ import './scoped-models/main.dart';
 import './models/product.dart';
 
 main() {
-  runApp(MyApp());
+  final MainModel _model = MainModel();
+  runApp(MyApp(_model));
 }
 
 class MyApp extends StatelessWidget {
+  final MainModel _model;
+  MyApp(this._model) {
+    _model.autoAuthenticate();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final MainModel model = MainModel();
     return ScopedModel<MainModel>(
-        model: model,
+        model: _model,
         child: MaterialApp(
           theme: ThemeData.dark(),
           // theme: ThemeData(
           //     primarySwatch: Colors.deepOrange, accentColor: Colors.purpleAccent),
-          home: AuthPage(),
+          // home: AuthPage(),
           routes: {
-            '/products': (BuildContext context) => ProductsPage(model),
-            '/admin': (BuildContext context) => ProductAdmin(model),
+            '/': (BuildContext context) => _model.authenticatedUser != null
+                ? ProductsPage(_model)
+                : AuthPage(),
+            '/admin': (BuildContext context) => ProductAdmin(_model),
           },
           onGenerateRoute: (RouteSettings settings) {
             final List<String> pathElements = settings.name.split('/');
@@ -34,9 +41,9 @@ class MyApp extends StatelessWidget {
             }
             if (pathElements[1] == 'product') {
               final String productId = (pathElements[2]);
-              final Product product = model.products
+              final Product product = _model.products
                   .firstWhere((Product product) => product.id == productId);
-              model.selectProduct(productId);
+              _model.selectProduct(productId);
               return MaterialPageRoute<bool>(
                   builder: (context) => ProductPage(
                         product: product,

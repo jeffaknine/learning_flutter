@@ -17,7 +17,7 @@ class ProductListPage extends StatefulWidget {
 class _ProductListPageState extends State<ProductListPage> {
   @override
   initState() {
-    widget.model.fetchProducts();
+    widget.model.fetchProducts(widget.model.authenticatedUser.token);
     super.initState();
   }
 
@@ -45,7 +45,7 @@ class _ProductListPageState extends State<ProductListPage> {
               onDismissed: (DismissDirection direction) {
                 if (direction == DismissDirection.endToStart) {
                   model.selectProduct(model.products[index].id);
-                  model.deleteProduct();
+                  model.deleteProduct(model.authenticatedUser.token);
                 }
               },
               key: Key(model.products[index].title),

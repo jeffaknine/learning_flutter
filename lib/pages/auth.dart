@@ -3,8 +3,6 @@ import 'package:scoped_model/scoped_model.dart';
 
 import '../scoped-models/main.dart';
 
-enum AuthMode { Signup, Login }
-
 class AuthPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -21,7 +19,6 @@ class _AuthPageState extends State<AuthPage> {
   bool _acceptTerms = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _textController = TextEditingController();
-  AuthMode _authMode = AuthMode.Login;
 
   BoxDecoration _buildBackgroundImage() {
     return BoxDecoration(
@@ -79,8 +76,7 @@ class _AuthPageState extends State<AuthPage> {
           fillColor: Theme.of(context).cardColor),
       obscureText: true,
       validator: (String value) {
-        // if (value != _textController.text) {
-        if (value != _userCredentials['password']) {
+        if (value != _textController.text) {
           return 'Passwords should match';
         }
       },
@@ -102,13 +98,23 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  void _login(Function login) {
-    if (!_formKey.currentState.validate() || !_acceptTerms) {
+  void _login(
+      BuildContext context, Function authenticate, bool isInSignInMode) async {
+    if (!_formKey.currentState.validate() ||
+        (!_acceptTerms && !isInSignInMode)) {
       return;
     }
     _formKey.currentState.save();
-    login(_userCredentials['email'], _userCredentials['password']);
-    Navigator.pushReplacementNamed(context, '/products');
+    Map<String, dynamic> successInformation = {};
+    successInformation = await authenticate(
+        _userCredentials['email'], _userCredentials['password']);
+    if (successInformation['success']) {
+      Navigator.pushReplacementNamed(context, '/products');
+    } else {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text(successInformation['message']),
+      ));
+    }
   }
 
   @override
@@ -117,59 +123,64 @@ class _AuthPageState extends State<AuthPage> {
     final double targetWidth = deviceWidth > 768.0 ? 500.0 : deviceWidth * 0.95;
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Login"),
-        ),
-        body: Container(
-            padding: EdgeInsets.all(10.0),
-            decoration: _buildBackgroundImage(),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Container(
-                    width: targetWidth,
-                    child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: <Widget>[
-                            _buildEmailTextField(),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            _buildPasswordTextField(),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            _authMode == AuthMode.Signup
-                                ? _buildPasswordConfirmTextField()
-                                : Container(),
-                            _buildSwitch(),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            FlatButton(
+      appBar: AppBar(
+        title: Text("Login"),
+      ),
+      body: Container(
+        padding: EdgeInsets.all(10.0),
+        decoration: _buildBackgroundImage(),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              width: targetWidth,
+              child: Form(
+                key: _formKey,
+                child: ScopedModelDescendant<MainModel>(
+                  builder: (context, child, MainModel model) {
+                    return Column(children: <Widget>[
+                      _buildEmailTextField(),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      _buildPasswordTextField(),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      !model.isInSignInMode
+                          ? _buildPasswordConfirmTextField()
+                          : Container(),
+                      !model.isInSignInMode ? _buildSwitch() : Container(),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      FlatButton(
+                        child: Text(
+                            'Switch to ${model.isInSignInMode ? 'Login' : 'Signup'}'),
+                        onPressed: () {
+                          model.setSignInMode(!model.isInSignInMode);
+                        },
+                      ),
+                      model.isLoadingUser
+                          ? CircularProgressIndicator()
+                          : RaisedButton(
                               child: Text(
-                                  'Switch to ${_authMode == AuthMode.Login ? 'Signup' : 'Login'}'),
-                              onPressed: () {
-                                setState(() {
-                                  _authMode = _authMode == AuthMode.Login
-                                      ? AuthMode.Signup
-                                      : AuthMode.Login;
-                                });
-                              },
-                            ),
-                            ScopedModelDescendant<MainModel>(
-                              builder: (context, child, MainModel model) {
-                                return RaisedButton(
-                                  child: Text("LOGIN"),
-                                  onPressed: !_acceptTerms
+                                  model.isInSignInMode ? "LOGIN" : "SIGNUP"),
+                              onPressed:
+                                  (!_acceptTerms && !model.isInSignInMode)
                                       ? null
-                                      : () => _login(model.login),
-                                );
-                              },
+                                      : () => _login(
+                                          context,
+                                          model.authenticate,
+                                          model.isInSignInMode),
                             ),
-                          ],
-                        ))),
+                    ]);
+                  },
+                ),
               ),
-            )));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
