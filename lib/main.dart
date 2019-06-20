@@ -8,6 +8,7 @@ import './pages/product.dart';
 import './scoped-models/main.dart';
 import './models/product.dart';
 
+//
 main() {
   final MainModel _model = MainModel();
   runApp(MyApp(_model));
